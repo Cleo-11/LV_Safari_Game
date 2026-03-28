@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LV · TRUNK ATELIER</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garant:ital,wght@0,300;0,400;0,600;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #C4A35A;
+  --gold-light: #E8CC8A;
+  --gold-dim: #7A6235;
+  --bg: #0A0806;
+  --panel: #110E0B;
+  --panel-light: #1A1612;
+  --border: #2A2318;
+  --text: #E8DCC8;
+  --text-dim: #8A7A66;
+  --text-muted: #4A3F35;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 56px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--panel);
+}
+.header-logo {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+}
+.header-title {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 13px;
+  font-weight: 300;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.header-right {
+  font-size: 9px;
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 270px 1fr 255px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Panels ── */
+.panel {
+  background: var(--panel);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.panel::-webkit-scrollbar { width: 3px; }
+.panel::-webkit-scrollbar-thumb { background: var(--border); }
+.left-panel { border-right: 1px solid var(--border); }
+.right-panel { border-left: 1px solid var(--border); }
+
+.panel-section {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 13px;
+}
+
+/* ── Trunk Type Cards ── */
+.trunk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+.trunk-card {
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s;
+  border-radius: 1px;
+}
+.trunk-card:hover { border-color: var(--gold-dim); }
+.trunk-card.active { border-color: var(--gold); box-shadow: 0 0 12px rgba(196,163,90,0.15); }
+.trunk-card canvas { width: 100%; height: 100%; display: block; image-rendering: auto; }
+.trunk-card-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.75));
+  font-size: 7px;
+  letter-spacing: 0.22em;
+  text-align: center;
+  padding: 6px 4px 4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.trunk-card.active .trunk-card-label { color: var(--gold-light); }
+
+/* ── Color Chips ── */
+.color-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+.color-chip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  outline: 1px solid rgba(255,255,255,0.08);
+  transition: all 0.2s;
+  position: relative;
+}
+.color-chip:hover { transform: scale(1.12); }
+.color-chip.active { border-color: var(--gold); outline-color: var(--gold); }
+.color-chip .chip-tip {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 7px;
+  white-space: nowrap;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-transform: uppercase;
+}
+.color-chip:hover .chip-tip { opacity: 1; }
+
+/* ── Option Pills ── */
+.option-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.option-pill {
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-dim);
+  border-radius: 1px;
+}
+.option-pill:hover { border-color: var(--gold-dim); color: var(--text); }
+.option-pill.active { border-color: var(--gold); color: var(--gold); background: rgba(196,163,90,0.07); }
+
+/* ── Initials ── */
+.initials-input {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Cormorant Garant', serif;
+  font-size: 20px;
+  letter-spacing: 0.45em;
+  text-align: center;
+  padding: 8px 12px;
+  width: 100%;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.initials-input:focus { border-color: var(--gold); }
+.initials-hint { font-size: 8.5px; color: var(--text-muted); letter-spacing: 0.15em; margin-top: 6px; line-height: 1.5; }
+
+/* ── Sticker Grid ── */
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+.sticker-btn {
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  border-radius: 1px;
+}
+.sticker-btn:hover { border-color: var(--gold-dim); background: var(--panel-light); }
+.sticker-btn.active { border-color: var(--gold); background: rgba(196,163,90,0.1); }
+
+/* ── Viewport ── */
+#viewport {
+  position: relative;
+  background: var(--bg);
+  overflow: hidden;
+  cursor: grab;
+}
+#viewport:active { cursor: grabbing; }
+#canvas3d { width: 100%; height: 100%; display: block; }
+.viewport-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8.5px;
+  letter-spacing: 0.32em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0.6;
+}
+.trunk-badge {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Cormorant Garant', serif;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.5em;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Minted Overlay ── */
+#minted-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(10,8,6,0.94);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+#minted-overlay.visible { display: flex; }
+.minted-wrap {
+  text-align: center;
+  padding: 48px 40px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  max-width: 340px;
+  width: 90%;
+}
+.minted-hex {
+  font-size: 40px;
+  color: var(--gold);
+  margin-bottom: 20px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.minted-title {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  margin-bottom: 6px;
+}
+.minted-sub {
+  font-size: 8.5px;
+  letter-spacing: 0.3em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.minted-token {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 15px;
+  color: var(--gold-dim);
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+.minted-scores {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+.minted-close {
+  padding: 11px 36px;
+  border: 1px solid var(--gold-dim);
+  background: transparent;
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.minted-close:hover { background: var(--gold); color: var(--bg); }
+
+/* ── Right Panel ── */
+.prestige-block {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.prestige-label {
+  font-size: 8.5px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.prestige-value {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 56px;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+  transition: all 0.5s ease;
+}
+.prestige-sub {
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+.scores-block {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.score-row {
+  margin-bottom: 16px;
+}
+.score-row:last-child { margin-bottom: 0; }
+.score-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+.score-name {
+  font-size: 8.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.score-num {
+  font-family: 'Cormorant Garant', serif;
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--gold);
+  line-height: 1;
+  transition: all 0.4s;
+}
+.score-track {
+  height: 1px;
+  background: var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.score-desc {
+  font-size: 7.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+}
+
+.mint-block {
+  padding: 20px;
+}
+.mint-btn {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  border: 1px solid var(--gold-dim);
+  color: var(--gold);
+  font-family: 'Jost', sans-serif;
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.mint-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+.mint-btn:hover::before { transform: scaleX(1); }
+.mint-btn:hover { color: #0A0806; }
+.mint-btn > span { position: relative; z-index: 1; }
+.mint-note {
+  font-size: 8px;
+  color: var(--text-muted);
+  letter-spacing: 0.12em;
+  text-align: center;
+  margin-top: 11px;
+  line-height: 1.7;
+}
+
+.minted-list {
+  padding: 0 20px 20px;
+}
+.minted-list-label {
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.minted-item {
+  font-size: 8.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(42,35,24,0.5);
+  display: flex;
+  justify-content: space-between;
+}
+.minted-item-token { color: var(--gold-dim); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">L · V</div>
+  <div class="header-title">Trunk Atelier</div>
+  <div class="header-right">
+    Digital Heritage<br>Collection
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══ LEFT: Customization Panel ═══ -->
+  <div class="panel left-panel">
+
+    <div class="panel-section">
+      <div class="section-label">Select Base Trunk</div>
+      <div class="trunk-grid">
+        <div class="trunk-card active" id="card-monogram" onclick="selectTrunk('monogram')">
+          <canvas id="thumb-monogram" width="90" height="90"></canvas>
+          <div class="trunk-card-label">Monogram</div>
+        </div>
+        <div class="trunk-card" id="card-damier" onclick="selectTrunk('damier')">
+          <canvas id="thumb-damier" width="90" height="90"></canvas>
+          <div class="trunk-card-label">Damier</div>
+        </div>
+        <div class="trunk-card" id="card-archival" onclick="selectTrunk('archival')">
+          <canvas id="thumb-archival" width="90" height="90"></canvas>
+          <div class="trunk-card-label">Archival</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Canvas Colorway</div>
+      <div class="color-row" id="canvas-chips"></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Hardware Finish</div>
+      <div class="color-row">
+        <div class="color-chip active" style="background:#C9A84C" data-hw="brass" onclick="selectHardware('brass',this)"><div class="chip-tip">Brass</div></div>
+        <div class="color-chip" style="background:#AAADB2" data-hw="silver" onclick="selectHardware('silver',this)"><div class="chip-tip">Silver</div></div>
+        <div class="color-chip" style="background:#F5C400" data-hw="gold" onclick="selectHardware('gold',this)"><div class="chip-tip">Yellow Gold</div></div>
+        <div class="color-chip" style="background:#C0737A" data-hw="rosegold" onclick="selectHardware('rosegold',this)"><div class="chip-tip">Rose Gold</div></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Handle</div>
+      <div class="option-row">
+        <div class="option-pill active" data-handle="natural" onclick="selectHandle('natural',this)">Natural</div>
+        <div class="option-pill" data-handle="dark" onclick="selectHandle('dark',this)">Dark</div>
+        <div class="option-pill" data-handle="chain" onclick="selectHandle('chain',this)">Chain</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Hot-Stamp Initials</div>
+      <input class="initials-input" id="initials-input" type="text" maxlength="3" placeholder="—" oninput="onInitials(this.value)">
+      <div class="initials-hint">Up to 3 characters · Embossed in gold</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-label">Digital Stickers · Max 3</div>
+      <div class="sticker-grid" id="sticker-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ CENTER: 3D Viewport ═══ -->
+  <div id="viewport">
+    <canvas id="canvas3d"></canvas>
+    <div class="trunk-badge" id="trunk-badge">Classic Monogram</div>
+    <div class="viewport-hint">Drag to rotate · Scroll to zoom</div>
+
+    <div id="minted-overlay">
+      <div class="minted-wrap">
+        <div class="minted-hex">⬡</div>
+        <div class="minted-title">Trunk Minted</div>
+        <div class="minted-sub">Token ID</div>
+        <div class="minted-token" id="mint-token-id">#000000</div>
+        <div class="minted-scores" id="mint-scores-display"></div>
+        <button class="minted-close" onclick="closeMint()">Continue Designing</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT: Scores + Mint ═══ -->
+  <div class="panel right-panel">
+
+    <div class="prestige-block">
+      <div class="prestige-label">Prestige Score</div>
+      <div class="prestige-value" id="prestige-val">—</div>
+      <div class="prestige-sub">Heritage · Creativity · Rarity</div>
+    </div>
+
+    <div class="scores-block">
+      <div class="score-row">
+        <div class="score-head">
+          <div class="score-name">Heritage</div>
+          <div class="score-num" id="s-heritage">0</div>
+        </div>
+        <div class="score-track"><div class="score-fill" id="b-heritage" style="width:0%"></div></div>
+        <div class="score-desc">Fidelity to LV craft codes &amp; tradition</div>
+      </div>
+      <div class="score-row">
+        <div class="score-head">
+          <div class="score-name">Creativity</div>
+          <div class="score-num" id="s-creativity">0</div>
+        </div>
+        <div class="score-track"><div class="score-fill" id="b-creativity" style="width:0%"></div></div>
+        <div class="score-desc">Divergence from canon · Personal expression</div>
+      </div>
+      <div class="score-row">
+        <div class="score-head">
+          <div class="score-name">Rarity</div>
+          <div class="score-num" id="s-rarity">0</div>
+        </div>
+        <div class="score-track"><div class="score-fill" id="b-rarity" style="width:0%"></div></div>
+        <div class="score-desc">Exclusivity of components chosen</div>
+      </div>
+    </div>
+
+    <div class="mint-block">
+      <button class="mint-btn" onclick="mintTrunk()"><span>✦ &nbsp;Mint as NFT</span></button>
+      <div class="mint-note">
+        Once minted, this exact combination<br>
+        is locked forever on-chain.<br>
+        Requires LV product ownership.
+      </div>
+    </div>
+
+    <div class="minted-list" id="minted-list" style="display:none">
+      <div class="minted-list-label">Minted This Session</div>
+      <div id="minted-list-items"></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════
+const STICKERS = ['🌸','⚜️','✦','♛','🌍','⬡','✿','◈','❋','⌘'];
+
+const CANVAS_OPTIONS = {
+  monogram: [
+    { id:'traditional', hex:'#7B4F2C', label:'Traditional' },
+    { id:'reverse',     hex:'#E8D5B0', label:'Reverse' },
+    { id:'pastel',      hex:'#C4A0A0', label:'Pastel Rose' },
+  ],
+  damier: [
+    { id:'ebene',    hex:'#5C3A1E', label:'Ebene' },
+    { id:'azur',     hex:'#7A9BB0', label:'Azur' },
+    { id:'graphite', hex:'#4A4A4A', label:'Graphite' },
+  ],
+  archival: [
+    { id:'original', hex:'#2C3020', label:'Original' },
+    { id:'camel',    hex:'#9A7248', label:'Restored' },
+    { id:'noir',     hex:'#1A1A1A', label:'Noir' },
+  ],
+};
+
+const TRUNK_DEFAULTS = { monogram:'traditional', damier:'ebene', archival:'original' };
+const TRUNK_NAMES    = { monogram:'Classic Monogram', damier:'Damier Canvas', archival:'Rare Archival' };
+
+const HW_COLORS = { brass:0xC9A84C, silver:0xAAAAB0, gold:0xF5C400, rosegold:0xC0737A };
+const HANDLE_COLORS = { natural:0xC8A878, dark:0x3D2411, chain:null };
+
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+const S = {
+  trunk:       'monogram',
+  canvasColor: 'traditional',
+  hardware:    'brass',
+  handle:      'natural',
+  initials:    '',
+  stickers:    [],
+};
+const mintedCombos = new Map(); // key -> { token, scores }
+
+// ════════════════════════════════════════════════════
+// TEXTURE GENERATORS
+// ════════════════════════════════════════════════════
+function makeMonogramTex(colorId) {
+  const cfg = {
+    traditional: { bg:'#7B4F2C', stripe:'#6A4226', fg:'#5A3318', lt:'#C4936A' },
+    reverse:     { bg:'#E8D5B0', stripe:'#DCC89E', fg:'#C4A878', lt:'#7B4F2C' },
+    pastel:      { bg:'#C4A0A0', stripe:'#B89090', fg:'#A07878', lt:'#E8D5D5' },
+  }[colorId] || { bg:'#7B4F2C', stripe:'#6A4226', fg:'#5A3318', lt:'#C4936A' };
+
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const x = c.getContext('2d');
+
+  x.fillStyle = cfg.bg;
+  x.fillRect(0,0,512,512);
+
+  const tile = 56;
+  for (let row = -1; row < 512/tile+2; row++) {
+    for (let col = -1; col < 512/tile+2; col++) {
+      const px = col*tile + (row%2===0 ? 0 : tile/2);
+      const py = row*tile;
+      if ((row+col)%2===0) {
+        x.fillStyle = cfg.fg;
+        x.font = `bold ${Math.round(tile*0.33)}px Georgia, serif`;
+        x.textAlign='center'; x.textBaseline='middle';
+        x.fillText('LV', px+tile/2, py+tile*0.33);
+        drawPetals(x, px+tile/2, py+tile*0.72, tile*0.11, cfg.fg);
+      } else {
+        drawPetals(x, px+tile/2, py+tile*0.3, tile*0.11, cfg.fg);
+        x.fillStyle = cfg.fg;
+        x.font = `${Math.round(tile*0.22)}px Georgia, serif`;
+        x.textAlign='center'; x.textBaseline='middle';
+        x.fillText('✦', px+tile/2, py+tile*0.72);
+      }
+    }
+  }
+  return c;
+}
+
+function drawPetals(ctx, cx, cy, r, color) {
+  ctx.save();
+  ctx.fillStyle = color;
+  for (let i=0; i<4; i++) {
+    const angle = i*Math.PI/2;
+    ctx.beginPath();
+    ctx.ellipse(
+      cx + Math.cos(angle)*r, cy + Math.sin(angle)*r,
+      r*0.45, r*0.88, angle, 0, Math.PI*2
+    );
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function makeDamierTex(colorId) {
+  const cfg = {
+    ebene:    ['#6B4423','#3D2411'],
+    azur:     ['#C8D8E4','#7A9BB0'],
+    graphite: ['#5A5A5A','#282828'],
+  }[colorId] || ['#6B4423','#3D2411'];
+
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const x = c.getContext('2d');
+  const tile = 64;
+  for (let r=0; r<8; r++) {
+    for (let col=0; col<8; col++) {
+      x.fillStyle = (r+col)%2===0 ? cfg[0] : cfg[1];
+      x.fillRect(col*tile, r*tile, tile, tile);
+    }
+  }
+  // Subtle LV in each primary square
+  x.globalAlpha = 0.1;
+  x.fillStyle = '#FFFFFF';
+  x.font = `bold ${Math.round(tile*0.28)}px Georgia, serif`;
+  x.textAlign='center'; x.textBaseline='middle';
+  for (let r=0; r<8; r++) {
+    for (let col=0; col<8; col++) {
+      if ((r+col)%2===0)
+        x.fillText('LV', col*tile+tile/2, r*tile+tile/2);
+    }
+  }
+  x.globalAlpha = 1;
+  return c;
+}
+
+function makeArchivalTex(colorId) {
+  const cfg = {
+    original: { bg:'#2C3020', s1:'#222618', s2:'#363D28', acc:'#4A5030' },
+    camel:    { bg:'#8B6B45', s1:'#7A5C38', s2:'#9A7A52', acc:'#B09060' },
+    noir:     { bg:'#1A1A1A', s1:'#111111', s2:'#222222', acc:'#303030' },
+  }[colorId] || { bg:'#2C3020', s1:'#222618', s2:'#363D28', acc:'#4A5030' };
+
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const x = c.getContext('2d');
+
+  x.fillStyle = cfg.bg;
+  x.fillRect(0,0,512,512);
+
+  // Horizontal stripes (steamer trunk aesthetic)
+  const sh = 28;
+  for (let r=0; r<512/sh; r++) {
+    x.fillStyle = r%2===0 ? cfg.s1 : cfg.s2;
+    x.fillRect(0, r*sh, 512, sh);
+  }
+
+  // Diamond grid overlay
+  x.globalAlpha = 0.2;
+  x.strokeStyle = cfg.acc;
+  x.lineWidth = 1;
+  const dm = 52;
+  for (let i=-dm; i<512+dm; i+=dm) {
+    for (let j=-dm; j<512+dm; j+=dm) {
+      x.beginPath();
+      x.moveTo(i+dm/2, j);
+      x.lineTo(i+dm, j+dm/2);
+      x.lineTo(i+dm/2, j+dm);
+      x.lineTo(i, j+dm/2);
+      x.closePath();
+      x.stroke();
+    }
+  }
+
+  // LV watermark
+  x.globalAlpha = 0.18;
+  x.fillStyle = cfg.acc;
+  x.font = 'bold 22px Georgia, serif';
+  x.textAlign='center'; x.textBaseline='middle';
+  for (let r=0; r<6; r++) {
+    for (let col=0; col<6; col++) {
+      x.fillText('LV', col*96+48, r*96+48);
+    }
+  }
+  x.globalAlpha = 1;
+  return c;
+}
+
+function getTexCanvas(trunkType, colorId) {
+  if (trunkType==='monogram') return makeMonogramTex(colorId);
+  if (trunkType==='damier')   return makeDamierTex(colorId);
+  return makeArchivalTex(colorId);
+}
+
+// ════════════════════════════════════════════════════
+// PREVIEW THUMBNAILS
+// ════════════════════════════════════════════════════
+function renderThumbnails() {
+  [
+    ['thumb-monogram','monogram','traditional'],
+    ['thumb-damier','damier','ebene'],
+    ['thumb-archival','archival','original'],
+  ].forEach(([id, t, c]) => {
+    const dest = document.getElementById(id);
+    const ctx = dest.getContext('2d');
+    const src = getTexCanvas(t, c);
+    ctx.drawImage(src, 0, 0, 90, 90);
+  });
+}
+
+// ════════════════════════════════════════════════════
+// THREE.JS
+// ════════════════════════════════════════════════════
+let scene, camera, renderer, trunkGroup;
+let isDrag = false, prevMX=0, prevMY=0;
+let tgtY=-0.45, tgtX=0.18, curY=-0.45, curX=0.18;
+
+function initThree() {
+  const vp = document.getElementById('viewport');
+  const cv = document.getElementById('canvas3d');
+  const W = vp.clientWidth, H = vp.clientHeight;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0A0806);
+  scene.fog = new THREE.Fog(0x0A0806, 16, 30);
+
+  camera = new THREE.PerspectiveCamera(34, W/H, 0.1, 100);
+  camera.position.set(0, 1.6, 7.5);
+  camera.lookAt(0, 0.75, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  // Lights
+  scene.add(new THREE.AmbientLight(0xE8DCC8, 0.45));
+  const key = new THREE.DirectionalLight(0xFFEDD0, 1.3);
+  key.position.set(3, 6, 4); key.castShadow = true;
+  key.shadow.mapSize.width = key.shadow.mapSize.height = 1024;
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xC8D4FF, 0.35);
+  fill.position.set(-4, 2, -2); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xFFE8A0, 0.55);
+  rim.position.set(0.5, 4, -5); scene.add(rim);
+
+  // Ground
+  const gnd = new THREE.Mesh(
+    new THREE.PlaneGeometry(30, 30),
+    new THREE.MeshStandardMaterial({ color:0x0D0B09, roughness:0.85, metalness:0.08 })
+  );
+  gnd.rotation.x = -Math.PI/2; gnd.receiveShadow = true;
+  scene.add(gnd);
+
+  // Subtle ground reflection ring
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(1.4, 2.8, 64),
+    new THREE.MeshBasicMaterial({ color:0xC4A35A, transparent:true, opacity:0.06, side:THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.001;
+  scene.add(ring);
+
+  trunkGroup = new THREE.Group();
+  trunkGroup.position.y = 0.12;
+  scene.add(trunkGroup);
+
+  buildTrunk();
+
+  // Events
+  cv.addEventListener('mousedown', e => { isDrag=true; prevMX=e.clientX; prevMY=e.clientY; });
+  window.addEventListener('mouseup', () => isDrag=false);
+  window.addEventListener('mousemove', e => {
+    if (!isDrag) return;
+    tgtY += (e.clientX-prevMX)*0.013;
+    tgtX += (e.clientY-prevMY)*0.006;
+    tgtX = Math.max(-0.55, Math.min(0.75, tgtX));
+    prevMX=e.clientX; prevMY=e.clientY;
+  });
+  cv.addEventListener('wheel', e => {
+    camera.position.z = Math.max(3.5, Math.min(13, camera.position.z + e.deltaY*0.01));
+  }, { passive:true });
+
+  // Touch
+  let t0 = null;
+  cv.addEventListener('touchstart', e => { if(e.touches.length===1){ isDrag=true; t0={x:e.touches[0].clientX,y:e.touches[0].clientY}; } }, {passive:true});
+  window.addEventListener('touchend', () => isDrag=false);
+  window.addEventListener('touchmove', e => {
+    if(!isDrag||!t0||e.touches.length!==1) return;
+    tgtY += (e.touches[0].clientX-t0.x)*0.013;
+    tgtX += (e.touches[0].clientY-t0.y)*0.006;
+    tgtX = Math.max(-0.55, Math.min(0.75, tgtX));
+    t0={x:e.touches[0].clientX,y:e.touches[0].clientY};
+  }, {passive:true});
+
+  window.addEventListener('resize', () => {
+    const W2=vp.clientWidth, H2=vp.clientHeight;
+    camera.aspect=W2/H2; camera.updateProjectionMatrix();
+    renderer.setSize(W2,H2);
+  });
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (!isDrag) tgtY += 0.0018;
+  curY += (tgtY-curY)*0.07;
+  curX += (tgtX-curX)*0.07;
+  if (trunkGroup) { trunkGroup.rotation.y=curY; trunkGroup.rotation.x=curX; }
+  renderer.render(scene, camera);
+}
+
+// ════════════════════════════════════════════════════
+// TRUNK BUILDER
+// ════════════════════════════════════════════════════
+function buildTrunk() {
+  while (trunkGroup.children.length) {
+    const child = trunkGroup.children[0];
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) {
+      if (child.material.map) child.material.map.dispose();
+      child.material.dispose();
+    }
+    trunkGroup.remove(child);
+  }
+
+  const W=3.0, H=1.52, D=1.22;
+  const LID=0.44, BODY=H-LID;
+
+  const texSrc = getTexCanvas(S.trunk, S.canvasColor);
+  const tex = new THREE.CanvasTexture(texSrc);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2.2, 1.1);
+
+  const cMat = new THREE.MeshStandardMaterial({ map:tex, roughness:0.82, metalness:0.0 });
+
+  const hwCol = HW_COLORS[S.hardware];
+  const hwMat = new THREE.MeshStandardMaterial({ color:hwCol, roughness:0.22, metalness:0.88 });
+
+  const leatherCol = S.handle==='chain' ? hwCol : HANDLE_COLORS[S.handle];
+  const lMat = new THREE.MeshStandardMaterial({
+    color:leatherCol,
+    roughness: S.handle==='chain' ? 0.22 : 0.72,
+    metalness: S.handle==='chain' ? 0.88 : 0.0,
+  });
+
+  const add = (geo, mat, px=0, py=0, pz=0, rx=0, ry=0, rz=0, shadow=true) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(px,py,pz);
+    m.rotation.set(rx,ry,rz);
+    if (shadow) { m.castShadow=true; m.receiveShadow=true; }
+    trunkGroup.add(m);
+    return m;
+  };
+
+  // Body & lid
+  add(new THREE.BoxGeometry(W, BODY, D), cMat, 0, BODY/2, 0);
+  add(new THREE.BoxGeometry(W, LID, D),  cMat, 0, BODY+LID/2, 0);
+
+  // Horizontal brass strips (latte)
+  [0.14, BODY-0.07, BODY+0.05, H-0.1].forEach(y =>
+    add(new THREE.BoxGeometry(W+0.04, 0.056, D+0.04), hwMat, 0, y, 0)
+  );
+  add(new THREE.BoxGeometry(W+0.04, 0.038, D+0.04), hwMat, 0, H+0.01, 0);
+  add(new THREE.BoxGeometry(W+0.04, 0.038, D+0.04), hwMat, 0, 0.019, 0);
+
+  // Vertical corner strips
+  const corners4 = [[-W/2,-D/2],[W/2,-D/2],[-W/2,D/2],[W/2,D/2]];
+  corners4.forEach(([cx,cz]) =>
+    add(new THREE.BoxGeometry(0.056,H+0.04,0.056), hwMat, cx, H/2, cz)
+  );
+
+  // Corner studs 8x
+  [0.03, H+0.01].forEach(cy =>
+    corners4.forEach(([cx,cz]) =>
+      add(new THREE.SphereGeometry(0.065,10,10), hwMat, cx, cy, cz)
+    )
+  );
+
+  // Feet
+  corners4.forEach(([cx,cz]) =>
+    add(new THREE.SphereGeometry(0.052,8,8), hwMat, cx*0.8, -0.04, cz*0.8)
+  );
+
+  // Lock body
+  add(new THREE.BoxGeometry(0.22, 0.3, 0.07), hwMat, 0, BODY, D/2+0.035);
+  // Lock shackle
+  add(new THREE.TorusGeometry(0.068, 0.018, 8, 12, Math.PI), hwMat,
+      0, BODY+0.16, D/2+0.035, Math.PI, 0, 0);
+  // Keyhole
+  add(new THREE.CylinderGeometry(0.033,0.033,0.09,8),
+      new THREE.MeshStandardMaterial({color:0x0D0B09, roughness:0.9}),
+      0, BODY-0.04, D/2+0.078, Math.PI/2, 0, 0, false);
+
+  // Side clasps x2
+  [-0.88,0.88].forEach(x =>
+    add(new THREE.BoxGeometry(0.14,0.18,0.06), hwMat, x, BODY, D/2+0.03)
+  );
+
+  // Handle base plates + rods
+  [-0.33,0.33].forEach(x => {
+    add(new THREE.BoxGeometry(0.15,0.04,0.1), hwMat, x, H+0.02, 0);
+    add(new THREE.CylinderGeometry(0.016,0.016,0.16,8), hwMat, x, H+0.1, 0);
+  });
+
+  // Handle grip
+  if (S.handle==='chain') {
+    for (let i=0;i<9;i++) {
+      const t=i/8;
+      const gx = -0.27+t*0.54;
+      const gy = H+0.18 + Math.sin(t*Math.PI)*0.06;
+      const ring = add(new THREE.TorusGeometry(0.033,0.012,6,8), lMat, gx, gy, 0);
+      ring.rotation.y = i%2===0 ? 0 : Math.PI/2;
+    }
+  } else {
+    add(new THREE.CylinderGeometry(0.026,0.026,0.66,10), lMat,
+        0, H+0.19, 0, 0, 0, Math.PI/2);
+  }
+
+  // Initials sprite
+  if (S.initials.length > 0) {
+    const sc = document.createElement('canvas');
+    sc.width=256; sc.height=112;
+    const ctx=sc.getContext('2d');
+    const hexStr='#'+hwCol.toString(16).padStart(6,'0');
+    ctx.fillStyle = hexStr;
+    ctx.font = 'bold 62px Georgia, serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(S.initials.toUpperCase(), 128, 56);
+    const spTex = new THREE.CanvasTexture(sc);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({map:spTex, transparent:true, opacity:0.92}));
+    sp.position.set(0.45, BODY*0.58, D/2+0.01);
+    sp.scale.set(0.65,0.29,1);
+    trunkGroup.add(sp);
+  }
+
+  // Sticker sprites
+  if (S.stickers.length > 0) {
+    S.stickers.forEach((s,i) => {
+      const sc=document.createElement('canvas');
+      sc.width=sc.height=128;
+      const ctx=sc.getContext('2d');
+      ctx.font='80px sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(s,64,64);
+      const spTex=new THREE.CanvasTexture(sc);
+      const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:spTex, transparent:true}));
+      const xOff=(i-(S.stickers.length-1)/2)*0.48;
+      sp.position.set(xOff-0.5, BODY*0.3, D/2+0.01);
+      sp.scale.set(0.28,0.28,1);
+      trunkGroup.add(sp);
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════
+// SCORING
+// ════════════════════════════════════════════════════
+function calcScores() {
+  let h=0, c=0, r=0;
+
+  ({ monogram:{h:40,c:5,r:10}, damier:{h:30,c:10,r:18}, archival:{h:18,c:15,r:40} })[S.trunk];
+  const tb=({ monogram:{h:40,c:5,r:10}, damier:{h:30,c:10,r:18}, archival:{h:18,c:15,r:40} })[S.trunk];
+  h+=tb.h; c+=tb.c; r+=tb.r;
+
+  const ci=CANVAS_OPTIONS[S.trunk].findIndex(o=>o.id===S.canvasColor);
+  const cs=[{h:22,c:0,r:5},{h:8,c:20,r:16},{h:0,c:12,r:30}][ci]||{h:22,c:0,r:5};
+  h+=cs.h; c+=cs.c; r+=cs.r;
+
+  const hws=({ brass:{h:20,c:0,r:5}, silver:{h:6,c:14,r:14}, gold:{h:2,c:10,r:28}, rosegold:{h:0,c:22,r:24} })[S.hardware];
+  h+=hws.h; c+=hws.c; r+=hws.r;
+
+  const hs=({ natural:{h:16,c:0,r:5}, dark:{h:8,c:10,r:10}, chain:{h:0,c:28,r:20} })[S.handle];
+  h+=hs.h; c+=hs.c; r+=hs.r;
+
+  if (S.initials.length>0) { h+=4; c+=8; r+=6; } else { h+=8; }
+
+  if      (S.stickers.length===0) { h+=8; }
+  else if (S.stickers.length===1) { c+=12; r+=5; }
+  else if (S.stickers.length===2) { c+=20; r+=10; h-=5; }
+  else                            { c+=28; r+=14; h-=12; }
+
+  return {
+    heritage:   Math.min(100,Math.max(0,Math.round(h))),
+    creativity: Math.min(100,Math.max(0,Math.round(c))),
+    rarity:     Math.min(100,Math.max(0,Math.round(r))),
+  };
+}
+
+function updateScores() {
+  const sc=calcScores();
+  document.getElementById('s-heritage').textContent = sc.heritage;
+  document.getElementById('s-creativity').textContent = sc.creativity;
+  document.getElementById('s-rarity').textContent = sc.rarity;
+  document.getElementById('b-heritage').style.width  = sc.heritage+'%';
+  document.getElementById('b-creativity').style.width= sc.creativity+'%';
+  document.getElementById('b-rarity').style.width    = sc.rarity+'%';
+  const prestige = Math.round((sc.heritage+sc.creativity+sc.rarity)/3);
+  document.getElementById('prestige-val').textContent = prestige;
+}
+
+// ════════════════════════════════════════════════════
+// UI INTERACTIONS
+// ════════════════════════════════════════════════════
+function selectTrunk(type) {
+  S.trunk = type;
+  S.canvasColor = TRUNK_DEFAULTS[type];
+  document.querySelectorAll('.trunk-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('card-'+type).classList.add('active');
+  document.getElementById('trunk-badge').textContent = TRUNK_NAMES[type];
+  renderCanvasChips();
+  buildTrunk(); updateScores();
+}
+
+function renderCanvasChips() {
+  const wrap = document.getElementById('canvas-chips');
+  wrap.innerHTML = '';
+  CANVAS_OPTIONS[S.trunk].forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'color-chip'+(opt.id===S.canvasColor?' active':'');
+    div.style.background = opt.hex;
+    div.dataset.canvas = opt.id;
+    const tip = document.createElement('div');
+    tip.className='chip-tip'; tip.textContent=opt.label;
+    div.appendChild(tip);
+    div.onclick = () => {
+      S.canvasColor=opt.id;
+      document.querySelectorAll('#canvas-chips .color-chip').forEach(c=>c.classList.remove('active'));
+      div.classList.add('active');
+      buildTrunk(); updateScores();
+    };
+    wrap.appendChild(div);
+  });
+}
+
+function selectHardware(type, el) {
+  S.hardware=type;
+  document.querySelectorAll('[data-hw]').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  buildTrunk(); updateScores();
+}
+
+function selectHandle(type, el) {
+  S.handle=type;
+  document.querySelectorAll('[data-handle]').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  buildTrunk(); updateScores();
+}
+
+function onInitials(val) {
+  S.initials=val.toUpperCase().slice(0,3);
+  buildTrunk(); updateScores();
+}
+
+function toggleSticker(s, btn) {
+  const idx=S.stickers.indexOf(s);
+  if (idx>-1) {
+    S.stickers.splice(idx,1);
+    btn.classList.remove('active');
+  } else {
+    if (S.stickers.length>=3) {
+      const removed=S.stickers.shift();
+      document.querySelectorAll('.sticker-btn').forEach(b=>{
+        if(b.textContent===removed) b.classList.remove('active');
+      });
+    }
+    S.stickers.push(s);
+    btn.classList.add('active');
+  }
+  buildTrunk(); updateScores();
+}
+
+// ════════════════════════════════════════════════════
+// MINT
+// ════════════════════════════════════════════════════
+function comboKey() {
+  return [S.trunk, S.canvasColor, S.hardware, S.handle, S.initials, [...S.stickers].sort().join(',')].join('|');
+}
+
+function mintTrunk() {
+  const key=comboKey();
+  if (mintedCombos.has(key)) {
+    alert('This exact combination has already been minted.\nTry a different configuration.');
+    return;
+  }
+  const sc = calcScores();
+  const token = '#'+Math.random().toString(16).slice(2,8).toUpperCase();
+  mintedCombos.set(key, { token, scores:sc });
+
+  document.getElementById('mint-token-id').textContent = token;
+  document.getElementById('mint-scores-display').textContent =
+    `Heritage ${sc.heritage}  ·  Creativity ${sc.creativity}  ·  Rarity ${sc.rarity}`;
+  document.getElementById('minted-overlay').classList.add('visible');
+
+  // Add to minted list in right panel
+  const listEl = document.getElementById('minted-list');
+  listEl.style.display='block';
+  const item = document.createElement('div');
+  item.className='minted-item';
+  item.innerHTML = `<span>${TRUNK_NAMES[S.trunk]}</span><span class="minted-item-token">${token}</span>`;
+  document.getElementById('minted-list-items').prepend(item);
+}
+
+function closeMint() {
+  document.getElementById('minted-overlay').classList.remove('visible');
+}
+
+// ════════════════════════════════════════════════════
+// STICKER GRID INIT
+// ════════════════════════════════════════════════════
+function initStickers() {
+  const g=document.getElementById('sticker-grid');
+  STICKERS.forEach(s => {
+    const b=document.createElement('div');
+    b.className='sticker-btn';
+    b.textContent=s;
+    b.onclick=()=>toggleSticker(s,b);
+    g.appendChild(b);
+  });
+}
+
+// ════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  initStickers();
+  renderThumbnails();
+  renderCanvasChips();
+  initThree();
+  updateScores();
+});
+</script>
+</body>
+</html>
