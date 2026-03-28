@@ -138,3 +138,4 @@ export function getTexCanvas(trunkType: string, colorId: string): HTMLCanvasElem
   if (trunkType === 'damier') return makeDamierTex(colorId);
   return makeArchivalTex(colorId);
 }
+//
